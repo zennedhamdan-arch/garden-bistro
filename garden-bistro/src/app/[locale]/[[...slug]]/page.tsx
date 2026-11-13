@@ -4,8 +4,6 @@ import { notFound } from "next/navigation";
 import {
   ArrowUpRight,
   ArrowRight,
-  BedDouble,
-  UtensilsCrossed,
   MapPin,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -15,6 +13,7 @@ import Shell from "@/components/Shell";
 import Botanical from "@/components/Botanical";
 import RequestForm from "@/components/RequestForm";
 import MenuOrder from "@/components/MenuOrder";
+import PhotoGallery from "@/components/PhotoGallery";
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ locale: string; slug?: string[] }> };
 const routes = [
@@ -116,6 +115,10 @@ export default async function PublicPage({ params }: Props) {
                   <ArrowUpRight size={17} />
                 </Link>
               </div>
+              <div className="hero-actions hero-secondary-actions">
+                <Link className="text-link" href={link("menu")}>{t.menu} <ArrowUpRight size={16} /></Link>
+                <Link className="text-link" href={link("reservations")}>{t.reservations} <ArrowUpRight size={16} /></Link>
+              </div>
               <div className="hero-foot">
                 <span>01 — GARDEN BISTRO</span>
                 <span>
@@ -124,13 +127,7 @@ export default async function PublicPage({ params }: Props) {
               </div>
             </div>
             <div className="hero-art">
-              <div className="art-label">
-                {t.artTitle}
-                <br />
-                <i>{t.artSubtitle}</i>
-              </div>
-              <Botanical />
-              <span className="art-caption">GARDEN BISTRO · {t.brandType}</span>
+              <Image src={page?.data.imageId ? "/api/images/" + page.data.imageId : "/images/hero.webp"} alt={String(page?.data.alt || ({en: "Garden Bistro dining terrace overlooking the pool", fr: "La terrasse de Garden Bistro donnant sur la piscine", sw: "Mtaro wa Garden Bistro unaoangalia bwawa"})[l])} fill priority unoptimized={!!page?.data.imageId} sizes="(max-width: 760px) 100vw, 55vw" className="cover-photo" />
             </div>
           </section>
           <div className="ribbon">
@@ -154,9 +151,8 @@ export default async function PublicPage({ params }: Props) {
             <div className="experience-grid">
               <Link className="experience hotel-card" href={link("hotel")}>
                 <div className="experience-art">
-                  <BedDouble size={64} strokeWidth={0.7} />
+                  <Image src="/images/room.webp" alt="A guest room at Garden Bistro" fill sizes="(max-width: 760px) 100vw, 50vw" className="cover-photo" />
                   <span className="card-number">01 / HOTEL</span>
-                  <div className="arch" />
                 </div>
                 <div className="experience-copy">
                   <div>
@@ -176,9 +172,8 @@ export default async function PublicPage({ params }: Props) {
                 href={link("restaurant")}
               >
                 <div className="experience-art">
-                  <UtensilsCrossed size={64} strokeWidth={0.7} />
+                  <Image src="/images/dining.webp" alt="A meal served at Garden Bistro" fill sizes="(max-width: 760px) 100vw, 50vw" className="cover-photo" />
                   <span className="card-number">02 / RESTAURANT</span>
-                  <div className="plate" />
                 </div>
                 <div className="experience-copy">
                   <div>
@@ -195,6 +190,10 @@ export default async function PublicPage({ params }: Props) {
               </Link>
             </div>
           </section>
+          <section className="home-gallery-preview">
+            <div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.gallery}</h2><Link className="text-link" href={link("gallery")}>{t.gallery} <ArrowUpRight size={16} /></Link></div>
+            <div className="home-gallery-images"><Image src="/images/garden.webp" alt={{en:"The garden at Garden Bistro",fr:"Le jardin de Garden Bistro",sw:"Bustani ya Garden Bistro"}[l]} width={900} height={600} sizes="(max-width: 760px) 100vw, 45vw" /><Image src="/images/bar.webp" alt={{en:"The bar at Garden Bistro",fr:"Le bar de Garden Bistro",sw:"Baa ya Garden Bistro"}[l]} width={900} height={600} sizes="(max-width: 760px) 100vw, 45vw" /></div>
+          </section>
           <section className="location-teaser">
             <MapPin size={28} strokeWidth={1} />
             <span className="eyebrow">KN 159 ST · NYAMIRAMBO</span>
@@ -207,7 +206,8 @@ export default async function PublicPage({ params }: Props) {
         </>
       ) : (
         <>
-          <section className="page-hero">
+          <section className={`page-hero page-hero-${key}`}>
+            {!!page?.data.imageId && <><Image className="page-hero-photo" src={"/api/images/" + page.data.imageId} alt={String(page.data.alt || page.title)} fill unoptimized sizes="100vw" /><span className="page-hero-overlay" /></>}
             <div>
               <span className="eyebrow">GARDEN BISTRO · {t.eyebrow}</span>
               <h1>
@@ -383,28 +383,7 @@ export default async function PublicPage({ params }: Props) {
               ) : (
                 <p className="empty-state">{t.unavailable}</p>
               ))}
-            {key === "gallery" &&
-              (records.some((r) => r.kind === "gallery") ? (
-                <div className="gallery-grid">
-                  {records
-                    .filter((r) => r.kind === "gallery" && r.data.imageId)
-                    .map((r) => (
-                      <figure key={r.id}>
-                        <Image
-                          src={"/api/images/" + r.data.imageId}
-                          alt={String(r.data.alt ?? r.title)}
-                          width={800}
-                          height={600}
-                          unoptimized
-                          loading="lazy"
-                        />
-                        <figcaption>{r.title}</figcaption>
-                      </figure>
-                    ))}
-                </div>
-              ) : (
-                <p className="empty-state">{t.unavailable}</p>
-              ))}
+            {key === "gallery" && <PhotoGallery locale={l} records={records.filter(r => r.kind === "gallery")} />}
             {key === "about" && !page && (
               <div className="prose">
                 <h2>Garden Bistro, Kigali</h2>

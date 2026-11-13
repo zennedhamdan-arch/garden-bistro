@@ -1095,3 +1095,43 @@ summary {
   height: auto;
   max-width: 900px;
 }
+
+/* Garden Bistro brand and property photography */
+:root { --green: #183d30; --ivory: #f7f3e9; --gold: #c6a34a; --ink: #171715; }
+body, header { background: #f7f3e9; }
+.brand-logo, .footer-logo { object-fit: contain; flex: none; }
+.footer-brand { gap: 18px; }
+.cover-photo { object-fit: cover; }
+.hero-art .cover-photo { object-position: center; }
+.experience-art { height: 340px; }
+.card-number { z-index: 1; color: white; background: #102b23d9; padding: 8px 12px; }
+.page-hero-hotel, .page-hero-rooms { background: linear-gradient(90deg, #102b23 5%, #102b23d9 48%, #102b2366), url('/images/room.webp') center 55% / cover; }
+.page-hero-restaurant, .page-hero-menu, .page-hero-order { background: linear-gradient(90deg, #102b23 5%, #102b23d9 48%, #102b2366), url('/images/restaurant.webp') center 55% / cover; }
+.page-hero-events { background: linear-gradient(90deg, #102b23 5%, #102b23d9 48%, #102b2366), url('/images/events.webp') center 55% / cover; }
+.page-hero-gallery, .page-hero-about { background: linear-gradient(90deg, #102b23 5%, #102b23d9 48%, #102b2366), url('/images/garden.webp') center / cover; }
+.page-hero > svg { display: none; }
+@media (max-width: 760px) { .brand-logo { width: 52px; height: 52px; } .experience-art { height: 260px; } }
+.hero-secondary-actions { margin-top: 22px; gap: 28px; color: #f7f3e9; }
+.hero-secondary-actions .text-link { color: inherit; }
+.gallery-filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
+.gallery-filters button { border:1px solid #b9c2b7; padding:10px 16px; background:transparent; color:#183d30; cursor:pointer; }
+.gallery-filters button[aria-pressed="true"] { background:#183d30; color:#fff; border-color:#183d30; }
+.photo-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.photo-tile { padding:0; border:0; background:#ede5d5; cursor:pointer; overflow:hidden; aspect-ratio:4/3; }
+.photo-tile img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+.photo-tile:hover img { transform:scale(1.035); }
+.photo-viewer { position:fixed; inset:0; z-index:1000; background:#102b23ed; display:flex; align-items:center; justify-content:center; padding:60px 20px 20px; }
+.photo-viewer img { width:auto; height:auto; max-width:100%; max-height:100%; object-fit:contain; }
+.photo-viewer button { position:absolute; top:12px; right:24px; border:0; background:transparent; color:white; font-size:40px; cursor:pointer; }
+.menu-photo { width:140px; height:110px; object-fit:cover; }
+@media(max-width:760px) { .photo-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .menu-photo { width:90px; height:90px; } }
+@media(max-width:400px) { .photo-grid { grid-template-columns:1fr; } }
+@media (prefers-reduced-motion: reduce) { .photo-tile img { transition:none; } }
+.page-hero-photo { object-fit:cover; z-index:0; }
+.page-hero-overlay { position:absolute; inset:0; background:linear-gradient(90deg,#102b23f2,#102b23b0); z-index:0; }
+.home-gallery-preview { padding:90px 8%; background:#ede5d5; }
+.home-gallery-preview > div:first-child { display:flex; align-items:baseline; gap:24px; flex-wrap:wrap; }
+.home-gallery-preview h2 { margin:0 0 25px; }
+.home-gallery-images { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.home-gallery-images img { width:100%; height:320px; object-fit:cover; }
+@media(max-width:760px) { .home-gallery-preview { padding:55px 7%; } .home-gallery-images img { height:190px; } }

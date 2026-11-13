@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { Content } from "@/lib/db";
 import { Locale, messages } from "@/lib/i18n";
 type Settings = {
@@ -134,6 +135,7 @@ export default function MenuOrder({
             )
             .map((i) => (
               <article className="menu-item" key={i.id}>
+                {!!i.data.imageId && <Image className="menu-photo" src={"/api/images/" + i.data.imageId} alt={String(i.data.alt || i.title)} width={180} height={140} unoptimized />}
                 <div>
                   <h3>{i.title}</h3>
                   <p>{i.description}</p>
@@ -153,7 +155,7 @@ export default function MenuOrder({
                         disabled={!!i.data.soldOut || i.price === null}
                         value={cart[i.id] ?? 0}
                         onChange={(e) => {
-                          setCart({ ...cart, [i.id]: Number(e.target.value) });
+                          setCart({ ...cart, [i.id]: Math.min(50, Math.max(0, Math.floor(Number(e.target.value) || 0))) });
                           key.current = "";
                         }}
                       />

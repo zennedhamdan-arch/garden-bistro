@@ -51,7 +51,7 @@ export default function Shell({
       <footer>
         <div className="footer-top">
           <div>
-            <div className="brand footer-brand">❧ GARDEN BISTRO</div>
+            <div className="brand footer-brand"><span>GARDEN BISTRO</span></div>
             <p>{t.footer}</p>
           </div>
           <div className="footer-nav">
@@ -63,6 +63,8 @@ export default function Shell({
                 "menu",
                 "order",
                 "reservations",
+                "events",
+                "gallery",
                 "about",
                 "contact",
                 "faq",
