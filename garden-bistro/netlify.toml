@@ -1,0 +1,4 @@
+[build]
+  base = "garden-bistro"
+  command = "npm run build"
+  publish = ".next"
