@@ -1,5 +1,6 @@
 import "./globals.css";
 import { headers } from "next/headers";
+export const metadata = { icons: { icon: "/images/garden-bistro-logo.png", apple: "/images/garden-bistro-logo.png" } };
 export default async function RootLayout({
   children,
 }: {

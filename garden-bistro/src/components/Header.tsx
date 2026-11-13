@@ -25,7 +25,7 @@ export default function Header({ locale }: { locale: Locale }) {
           href={`/${locale}`}
           aria-label="Garden Bistro home"
         >
-          
+          <img className="brand-logo" src="/images/garden-bistro-logo.png" alt="" width="62" height="62" />
           <span>
             GARDEN BISTRO<small>{t.brandType}</small>
           </span>

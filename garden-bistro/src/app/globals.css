@@ -1135,3 +1135,11 @@ body, header { background: #f7f3e9; }
 .home-gallery-images { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .home-gallery-images img { width:100%; height:320px; object-fit:cover; }
 @media(max-width:760px) { .home-gallery-preview { padding:55px 7%; } .home-gallery-images img { height:190px; } }
+.location-map { width:100%; max-width:1100px; margin:30px auto 0; }
+.map-container { width:100%; aspect-ratio: 16 / 7; min-height:260px; background:#ede5d5; overflow:hidden; }
+.map-container iframe { display:block; width:100%; height:100%; border:0; }
+.map-directions { display:inline-flex; margin-top:16px; }
+.admin-brand { display:flex; align-items:center; gap:10px; }
+.admin-brand img, .login-logo { object-fit:contain; flex:none; }
+.login-logo { display:block; margin-bottom:20px; }
+@media(max-width:760px) { .map-container { aspect-ratio:4 / 3; min-height:250px; } }

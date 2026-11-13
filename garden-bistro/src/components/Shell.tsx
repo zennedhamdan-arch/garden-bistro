@@ -51,7 +51,7 @@ export default function Shell({
       <footer>
         <div className="footer-top">
           <div>
-            <div className="brand footer-brand"><span>GARDEN BISTRO</span></div>
+            <div className="brand footer-brand"><img className="footer-logo" src="/images/garden-bistro-logo.png" alt="Garden Bistro Bar & Restaurant logo" width="100" height="100" /><span>GARDEN BISTRO</span></div>
             <p>{t.footer}</p>
           </div>
           <div className="footer-nav">

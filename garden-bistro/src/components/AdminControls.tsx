@@ -24,6 +24,7 @@ export function Login() {
   }
   return (
     <form onSubmit={submit} className="login">
+      <img className="login-logo" src="/images/garden-bistro-logo.png" alt="Garden Bistro Bar & Restaurant logo" width="90" height="90" />
       <span className="eyebrow">GARDEN BISTRO · ADMINISTRATION</span>
       <h1>Welcome back.</h1>
       <p>Authorized staff only. Customer information is private.</p>

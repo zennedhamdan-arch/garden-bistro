@@ -66,7 +66,7 @@ export default async function Admin({
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
-        <h2>Garden Bistro</h2>
+        <h2 className="admin-brand"><img src="/images/garden-bistro-logo.png" alt="" width="52" height="52" /> Garden Bistro</h2>
         <span className="eyebrow" style={{ color: "#d3c194" }}>
           ADMINISTRATION
         </span>

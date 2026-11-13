@@ -14,6 +14,7 @@ import Botanical from "@/components/Botanical";
 import RequestForm from "@/components/RequestForm";
 import MenuOrder from "@/components/MenuOrder";
 import PhotoGallery from "@/components/PhotoGallery";
+import LocationMap from "@/components/LocationMap";
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ locale: string; slug?: string[] }> };
 const routes = [
@@ -202,6 +203,7 @@ export default async function PublicPage({ params }: Props) {
               {t.contact}
               <ArrowUpRight size={16} />
             </Link>
+            <LocationMap locale={l} />
           </section>
         </>
       ) : (
@@ -353,7 +355,7 @@ export default async function PublicPage({ params }: Props) {
               </>
             )}
             {key === "contact" && (
-              <div className="contact-details">
+              <><div className="contact-details">
                 <p>KN 159 St, Nyamirambo, Kigali, Rwanda</p>
                 <a href="tel:+250786458663">+250 786 458 663</a>
                 <a href="mailto:info@gardenbistro.net">info@gardenbistro.net</a>
@@ -365,7 +367,7 @@ export default async function PublicPage({ params }: Props) {
                 >
                   WhatsApp <ArrowUpRight size={16} />
                 </a>
-              </div>
+              </div><LocationMap locale={l} /></>
             )}
             {["privacy", "terms", "policies"].includes(key) && !page && (
               <p className="empty-state">{t.legal}</p>
