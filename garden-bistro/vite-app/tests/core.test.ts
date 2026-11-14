@@ -110,3 +110,47 @@ test("media and menu management endpoints reject foreign and anonymous calls",as
   assert.equal((await call("https://example.org")).status,403);assert.equal((await call("https://evil.example")).status,403);
  }
 });
+
+test("public projection excludes drafts and raw metadata while joining only mapped public media",async()=>{
+ const {PGlite}=await import("@electric-sql/pglite");const {publicContentSql}=await import("../netlify/functions/public-content");
+ const db=new PGlite();
+ try {
+  await db.exec(`CREATE TABLE content(id uuid PRIMARY KEY,kind text,locale text,slug text,title text,description text,price integer,published boolean,sort_order integer,data jsonb); CREATE TABLE gb_media(id uuid PRIMARY KEY,object_key text,alt_text text);
+  INSERT INTO gb_media VALUES ('33333333-3333-4333-8333-333333333333','media/44444444-4444-4444-8444-444444444444.webp','A photo');
+  INSERT INTO content VALUES ('11111111-1111-4111-8111-111111111111','menu','en','dish','Dish','Description',2000,true,0,'{"category":"Food","soldOut":true,"r2MediaId":"33333333-3333-4333-8333-333333333333","privateFlag":"secret"}'),('22222222-2222-4222-8222-222222222222','menu','en','draft','Draft','Private',1000,false,1,'{}');`);
+  const result=await db.query<Record<string,unknown>>(publicContentSql,["menu","en",null]);assert.equal(result.rows.length,1);assert.equal(result.rows[0].title,"Dish");assert.equal(result.rows[0].sold_out,true);assert.equal(result.rows[0].object_key,"media/44444444-4444-4444-8444-444444444444.webp");assert.equal("data" in result.rows[0],false);assert.equal("privateFlag" in result.rows[0],false);
+  assert.equal((await db.query(publicContentSql,["menu","en","draft"])).rows.length,0);
+ }finally{await db.close()}
+});
+test("public content input is allowlisted and fails closed without a database",async()=>{
+ const publicContent=(await import("../netlify/functions/public-content")).default;
+ assert.equal((await publicContent(new Request("https://example.org/?kind=requests&locale=en"))).status,400);
+ assert.equal((await publicContent(new Request("https://example.org/?kind=menu&locale=en&locale=fr"))).status,400);
+ assert.equal((await publicContent(new Request("https://example.org/?kind=menu&locale=en",{method:"POST"}))).status,405);
+});
+test("request queue filters data and rejects stale status updates",async()=>{
+ const {PGlite}=await import("@electric-sql/pglite");const {listSql,updateSql,listSchema,updateSchema}=await import("../netlify/functions/staff-requests");const db=new PGlite();
+ try{
+  await db.exec(`CREATE TABLE requests(id uuid PRIMARY KEY,reference text,kind text,locale text,name text,phone text,email text,details jsonb,status text,created_at timestamptz,updated_at timestamptz); INSERT INTO requests VALUES ('11111111-1111-4111-8111-111111111111','GB-R-1','reservation','en','Guest','1234567',null,'{}','pending',now(),now()), ('22222222-2222-4222-8222-222222222222','GB-H-2','hotel','en','Other','7654321',null,'{}','pending',now(),now());`);
+  assert.equal((await db.query(listSql,["hotel","pending","Other",0])).rows.length,1);
+  assert.equal((await db.query(updateSql,["confirmed","11111111-1111-4111-8111-111111111111","pending"])).rows.length,1);
+  assert.equal((await db.query(updateSql,["declined","11111111-1111-4111-8111-111111111111","pending"])).rows.length,0);
+  assert.equal(listSchema.safeParse({action:"list",offset:-1}).success,false);
+  assert.equal(updateSchema.safeParse({action:"update",id:"11111111-1111-4111-8111-111111111111",status:"confirmed"}).success,false);
+ }finally{await db.close()}
+});
+
+test("proposed request RLS isolates anonymous, unassigned and authorized staff",async()=>{
+ const {PGlite}=await import("@electric-sql/pglite");const {readFile}=await import("node:fs/promises");const db=new PGlite();
+ const staff="11111111-1111-4111-8111-111111111111",other="22222222-2222-4222-8222-222222222222";
+ try{
+  await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY); CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; INSERT INTO auth.users VALUES ('${staff}'),('${other}'); CREATE TABLE public.requests(id uuid PRIMARY KEY); INSERT INTO requests VALUES ('33333333-3333-4333-8333-333333333333');`);
+  await db.exec(await readFile("migrations/001_staff_access_PROPOSED.sql","utf8"));await db.exec(await readFile("migrations/003_request_read_rls_PROPOSED.sql","utf8"));
+  await db.query("INSERT INTO gb_staff_access(auth_user_id,role,permissions) VALUES($1,'editor',ARRAY['requests.read'])",[staff]);
+  await db.exec("SET ROLE anon");await assert.rejects(db.query("SELECT * FROM requests"));await db.exec("RESET ROLE");
+  await db.exec("SET ROLE authenticated");await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[other]);assert.equal((await db.query("SELECT * FROM requests")).rows.length,0);
+  await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[staff]);assert.equal((await db.query("SELECT * FROM requests")).rows.length,1);
+  await assert.rejects(db.query("UPDATE gb_staff_access SET permissions=ARRAY['staff.manage']"));await db.exec("RESET ROLE");
+  await db.query("UPDATE gb_staff_access SET active=false WHERE auth_user_id=$1",[staff]);await db.exec("SET ROLE authenticated");assert.equal((await db.query("SELECT * FROM requests")).rows.length,0);await db.exec("RESET ROLE");
+ }finally{await db.close()}
+});
