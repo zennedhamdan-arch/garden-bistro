@@ -1,0 +1,9 @@
+# Optional separate staging site; does not replace the existing production build.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
