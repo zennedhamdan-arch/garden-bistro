@@ -10,7 +10,7 @@ export default async (request:Request) => {
  try {
   const actor=await authorized(request,contentPermission(kind,list.success?"read":"write"));
   if(!actor)return json({error:"Forbidden"},403);
-  if(list.success){const v=list.data;const r=await db().query("SELECT id,kind,locale,slug,title,description,price,published,sort_order FROM content WHERE kind=$1 AND locale=$2 ORDER BY sort_order,title,id LIMIT 50 OFFSET $3",[v.kind,v.locale,v.offset]);return json({items:r.rows})}
+  if(list.success){const v=list.data;const r=await db().query("SELECT id,kind,locale,slug,title,description,price,published,sort_order,data FROM content WHERE kind=$1 AND locale=$2 ORDER BY sort_order,title,id LIMIT 50 OFFSET $3",[v.kind,v.locale,v.offset]);return json({items:r.rows})}
   const v=save.data!;const client=await db().connect();
   try {await client.query("BEGIN");let result;
    if(v.id){result=await client.query("UPDATE content SET slug=$1,title=$2,description=$3,price=$4,published=$5,sort_order=$6,updated_at=now() WHERE id=$7 AND kind=$8 AND locale=$9 RETURNING id",[v.slug,v.title,v.description,v.price,v.published,v.sort_order,v.id,v.kind,v.locale]);if(!result.rowCount){await client.query("ROLLBACK");return json({error:"Not found"},404)}}

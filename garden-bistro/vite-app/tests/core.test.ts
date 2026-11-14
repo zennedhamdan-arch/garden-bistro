@@ -81,3 +81,32 @@ test("new staff functions reject anonymous calls and foreign origins",async()=>{
   assert.equal((await invoke("https://evil.example")).status,403);
  }
 });
+
+test("public media paths reject non-HTTPS origins and path traversal",async()=>{
+ const {publicMediaUrl}=await import("../netlify/functions/lib/media");
+ const key="media/11111111-1111-4111-8111-111111111111.webp";
+ assert.equal(publicMediaUrl("https://media.example.org/public/",key),"https://media.example.org/public/"+key);
+ assert.throws(()=>publicMediaUrl("http://media.example.org",key));
+ assert.throws(()=>publicMediaUrl("https://media.example.org", "media/../private.webp"));
+ assert.throws(()=>publicMediaUrl("https://user:password@media.example.org",key));
+});
+test("menu metadata update preserves unrelated fields and cannot change other content kinds",async()=>{
+ const {PGlite}=await import("@electric-sql/pglite");const {updateMenuSql,menuDetailsSchema}=await import("../netlify/functions/staff-menu-details");
+ const db=new PGlite();const menu="11111111-1111-4111-8111-111111111111",room="22222222-2222-4222-8222-222222222222";
+ try{
+  await db.exec(`CREATE TABLE content(id uuid PRIMARY KEY,kind text,data jsonb,updated_at timestamptz); INSERT INTO content VALUES ('${menu}','menu','{"imageId":"keep-me","labels":["original"]}',now()), ('${room}','room','{"category":"old"}',now());`);
+  assert.equal((await db.query(updateMenuSql,["Specials",true,menu])).rows.length,1);
+  const result=await db.query<{data:Record<string,unknown>}>('SELECT data FROM content WHERE id=$1',[menu]);
+  assert.deepEqual(result.rows[0].data,{imageId:"keep-me",labels:["original"],category:"Specials",soldOut:true});
+  assert.equal((await db.query(updateMenuSql,["Wrong",true,room])).rows.length,0);
+  assert.equal(menuDetailsSchema.safeParse({id:menu,category:"x".repeat(121),soldOut:false}).success,false);
+ } finally {await db.close()}
+});
+test("media and menu management endpoints reject foreign and anonymous calls",async()=>{
+ const media=(await import("../netlify/functions/staff-media")).default;const menu=(await import("../netlify/functions/staff-menu-details")).default;
+ process.env.SITE_URL="https://example.org";delete process.env.SUPABASE_URL;delete process.env.SUPABASE_ANON_KEY;
+ for(const [fn,body] of [[media,{action:"list",offset:0}],[menu,{id:"11111111-1111-4111-8111-111111111111",category:"a",soldOut:false}]] as const){
+  const call=(origin:string)=>fn(new Request("https://example.org",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify(body)}));
+  assert.equal((await call("https://example.org")).status,403);assert.equal((await call("https://evil.example")).status,403);
+ }
+});

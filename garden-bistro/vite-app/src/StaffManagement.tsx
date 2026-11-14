@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 const roles=["administrator","manager","restaurant_staff","reception_staff","editor"] as const;
-const permissions=["requests.read","requests.write","media.write","staff.manage",...["page","room","menu","category","faq","gallery","event"].flatMap(k=>[`content.${k}.read`,`content.${k}.write`])];
+const permissions=["requests.read","requests.write","media.read","media.write","staff.manage",...["page","room","menu","category","faq","gallery","event"].flatMap(k=>[`content.${k}.read`,`content.${k}.write`])];
 type Row={auth_user_id:string;role:string;active:boolean;permissions:string[]};
 export function StaffManagement({token}:{token:string}){
  const [rows,setRows]=useState<Row[]>([]);const [role,setRole]=useState<string>("editor");const [selected,setSelected]=useState<string[]>([]);const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);

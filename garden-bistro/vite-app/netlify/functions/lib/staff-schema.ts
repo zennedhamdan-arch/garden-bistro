@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { kinds } from "./content-schema";
-export const permissions=["requests.read","requests.write","media.write","staff.manage",...kinds.flatMap(k=>[`content.${k}.read`,`content.${k}.write`])] as const;
+export const permissions=["requests.read","requests.write","media.read","media.write","staff.manage",...kinds.flatMap(k=>[`content.${k}.read`,`content.${k}.write`])] as const;
 const role=z.enum(["administrator","manager","restaurant_staff","reception_staff","editor"]);
 const permission=z.enum(permissions);
 export const staffList=z.object({action:z.literal("list")}).strict();

@@ -9,3 +9,8 @@ export async function normalizeImage(buffer:Buffer,mime:string) {
   const output=await image.rotate().resize({width:2400,height:2400,fit:"inside",withoutEnlargement:true}).webp({quality:82}).toBuffer({resolveWithObject:true});
   return {bytes:output.data,width:output.info.width,height:output.info.height};
 }
+export function publicMediaUrl(baseValue:string,key:string) {
+  const base=new URL(baseValue);
+  if(base.protocol!=="https:" || base.username || base.password || base.search || base.hash || !/^media\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/i.test(key)) throw new Error("Invalid public media location");
+  return `${base.toString().replace(/\/+$/,"")}/${key}`;
+}
