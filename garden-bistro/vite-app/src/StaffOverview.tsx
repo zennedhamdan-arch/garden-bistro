@@ -1,0 +1,8 @@
+import {useEffect,useState} from "react";
+import type {Locale} from "./i18n";
+const copy={en:{title:"Overview",requests:"Pending requests",orders:"Pending orders",loading:"Loading…",error:"Unable to load metrics.",none:"No permitted metrics."},fr:{title:"Vue d’ensemble",requests:"Demandes en attente",orders:"Commandes en attente",loading:"Chargement…",error:"Impossible de charger les indicateurs.",none:"Aucun indicateur autorisé."},sw:{title:"Muhtasari",requests:"Maombi yanayosubiri",orders:"Maagizo yanayosubiri",loading:"Inapakia…",error:"Imeshindwa kupakia takwimu.",none:"Hakuna takwimu zinazoruhusiwa."}};
+export function StaffOverview({token,locale}:{token:string;locale:Locale}){
+ const [metrics,setMetrics]=useState<{pendingRequests:number|null;pendingOrders:number|null}|null>(null);const [error,setError]=useState(false);const t=copy[locale];
+ useEffect(()=>{let active=true;setError(false);void fetch("/.netlify/functions/staff-overview",{method:"POST",headers:{Authorization:`Bearer ${token}`}}).then(async r=>{if(!r.ok)throw new Error();return r.json()}).then(d=>{if(active)setMetrics(d.metrics)}).catch(()=>{if(active)setError(true)});return()=>{active=false}},[token]);
+ return <section className="admin-panel"><h2>{t.title}</h2>{error?<p role="alert">{t.error}</p>:!metrics?<p role="status">{t.loading}</p>:<div className="metrics">{metrics.pendingRequests!==null&&<article><strong>{metrics.pendingRequests}</strong><span>{t.requests}</span></article>}{metrics.pendingOrders!==null&&<article><strong>{metrics.pendingOrders}</strong><span>{t.orders}</span></article>}{metrics.pendingRequests===null&&metrics.pendingOrders===null&&<p>{t.none}</p>}</div>}</section>;
+}

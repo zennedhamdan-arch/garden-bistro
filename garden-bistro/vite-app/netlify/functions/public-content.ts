@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { db, json } from "./lib/server";
 import { publicMediaUrl } from "./lib/media";
-const querySchema=z.object({kind:z.enum(["page","menu","room","faq"]),locale:z.enum(["en","fr","sw"]),slug:z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120).optional()}).strict();
+const querySchema=z.object({kind:z.enum(["page","menu","room","faq","gallery"]),locale:z.enum(["en","fr","sw"]),slug:z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120).optional()}).strict();
 // Select only deliberately public fields from published rows; never return raw JSON metadata.
 export const publicContentSql=`SELECT c.id,c.title,c.description,c.price,c.data->>'category' AS category,
-  c.data->'soldOut'='true'::jsonb AS sold_out,m.object_key,m.alt_text
+  c.data->'soldOut'='true'::jsonb AS sold_out,m.object_key,COALESCE(NULLIF(c.data->>'alt',''),m.alt_text) AS alt_text
   FROM content c LEFT JOIN gb_media m ON m.id::text=c.data->>'r2MediaId'
   WHERE c.published=true AND c.kind=$1 AND c.locale=$2 AND ($3::text IS NULL OR c.slug=$3)
   ORDER BY c.sort_order,c.title,c.id LIMIT 500`;

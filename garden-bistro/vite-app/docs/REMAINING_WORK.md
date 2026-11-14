@@ -1,4 +1,16 @@
-# Remaining rebuild: implementation and rollout plan
+# Remaining rebuild: implementation checklist and rollout plan
+
+## Checklist (code and local tests; not live verification)
+
+- [x] Basic permission-gated overview, audit search, and business profile/opening-hours editor implemented; unpublished/unspecified information is not presented as fact.
+- [x] Public contact displays only the explicitly published business profile.
+- [x] Legacy reference linker added: detects conflicts, verifies mapped R2 bytes, preserves original `imageId`, and updates links transactionally. Not run against a live database or R2.
+- [x] Published gallery and page hero images can use linked R2 media; room and menu images use the same public content endpoint.
+- [x] Staff login, new profile, overview, audit and section navigation have EN/FR/SW text. Other staff panels still need localization and review.
+- [ ] Full granular RLS audit and live Supabase role-matrix tests.
+- [ ] Staging image inventory, copy and reference migration; verify actual counts, hashes, references and rollback.
+- [ ] Remaining administration, media replacement/deletion, notifications, mobile/browser tests and production approval.
+
 
 This plan describes work still required, not completed production behavior. The Vite app is separate from the current Next.js deployment. Current repository code and proposed SQL are not proof of deployed schema, data counts, permissions or service configuration.
 
@@ -6,7 +18,7 @@ This plan describes work still required, not completed production behavior. The 
 
 **Built:** the original app has a read-only record/image digest inventory. The Vite app now has a dry-run/resumable legacy-image copier and a proposed mapping table. It reads legacy `images` under a read-only repeatable-read snapshot, checks real WebP bytes and dimensions, uploads identical bytes to a fresh R2 key, downloads and SHA-256 checks them, and only then records metadata and a legacy ID mapping in a target transaction. A rerun checks both the source digest and the remote object. It does not change content references or delete source bytes. R2 and PostgreSQL are independent systems; failed or uncertain writes can leave orphan objects and are logged for manual reconciliation, never automatically deleted.
 
-**Next:** obtain a verified, least-privilege read-only copy of the source and inspect the real tables, extensions, grants, RLS, policies, triggers, indexes and applied migrations. Inventory all content, settings, orders, request history, roles and referenced images. Reconcile legacy IDs across locales and content JSON. Get explicit approval that the images may be publicly accessible from the chosen R2 domain; quarantine anything not approved. Back up source and test restoration. On isolated staging only, review/apply proposed migrations, execute dry-run, then copy and verify all hashes/counts. Record source/target identity and date in the approved migration record; don't check sensitive inventory into Git. Reconcile orphan keys. Build and test a separate additive reference migration using the verified mapping, preserving old `imageId` references and recording original values for rollback. Compare every reference and image before/after, confirm content still renders, and only consider source-byte cleanup after explicit approval. A staging success does not constitute a production migration.
+**Next:** obtain a verified, least-privilege read-only copy of the source and inspect the real tables, extensions, grants, RLS, policies, triggers, indexes and applied migrations. Inventory all content, settings, orders, request history, roles and referenced images. Reconcile legacy IDs across locales and content JSON. Get explicit approval that the images may be publicly accessible from the chosen R2 domain; quarantine anything not approved. Back up source and test restoration. On isolated staging only, review/apply proposed migrations, execute dry-run, then copy and verify all hashes/counts. Record source/target identity and date in the approved migration record; don't check sensitive inventory into Git. Reconcile orphan keys. Use the new separately approved reference linker on staging: run `npm run media:references -- --dry-run` and reconcile all unmapped, invalid and conflicting entries; execute only after backup, content freeze and R2 approval with `MIGRATION_REFERENCES_APPROVED=yes`, target `DATABASE_URL`, `MIGRATION_ACTOR_ID` and the server-only R2 variables. It re-downloads and checks length/SHA-256 for mapped objects, adds `r2MediaId` while retaining `imageId`, preserves other JSON and audits changes transactionally. Test rollback and inspect actual schema and live results; it is not a proof that all references elsewhere were found. Compare every reference and image before/after, confirm content still renders, and only consider source-byte cleanup after explicit approval. A staging success does not constitute a production migration.
 
 ## 2. Authorization and RLS
 
@@ -16,7 +28,7 @@ This plan describes work still required, not completed production behavior. The 
 
 ## 3. Administration and media lifecycle
 
-**Built:** basic permission-aware staff content, requests, invitations and R2 upload/library; menu category, availability and image link.
+**Built:** basic permission-aware staff content, requests, invitations, order settings, dashboard counts, audit viewer, profile and opening-hours editor, and R2 upload/library; menu category, availability and image link. New profile fields are unpublished by default; unspecified hours are not assumed closed.
 
 **Next:** implement dashboard metrics/activity and the remaining permission-aware pages for menu/categories, rooms, events, reviews, business profile/hours, translated content and audit. The basic order queue and ordering-settings editor are implemented but not live-tested. Add server validation, server-side pagination/search, confirmations, concurrency checks, audit entries and useful loading/error/empty states. For replacement, upload and verify a new object first, atomically update references with audit and preserve the old object for rollback. For deletion, first enumerate all content and legacy mappings and prove an object is unreferenced; implement a reversible tombstone/retention period and an audited, separately authorized cleanup job. Do not delete an object if reference discovery, ownership or commit state is uncertain. Add integration tests for unauthorized actions, partial failures and recovery.
 
@@ -34,7 +46,7 @@ This plan describes work still required, not completed production behavior. The 
 
 ## 6. Localization and accessibility
 
-**Built:** EN/FR/SW public strings and translated database records; staff UI remains English.
+**Built:** EN/FR/SW public strings and translated database records; staff login, section navigation, profile, overview and audit have translated text. Other staff panels remain English and translations still require review.
 
 **Next:** centralize all public and admin strings, validate parity of translation keys, localize form errors, state labels, email/invite copy and content editor workflows. Owner/reviewer must approve translations and missing business facts. Test keyboard focus, labels, responsive navigation, screen-reader announcements, color contrast and slow/mobile rendering. Add browser tests in EN/FR/SW with both empty and populated data and real login recovery; compare against the five supplied references. Verify titles/metadata, canonicals, sitemap and indexability against the approved production domain without fabricating business facts.
 
