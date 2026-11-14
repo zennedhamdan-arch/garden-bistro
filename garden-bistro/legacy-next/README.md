@@ -1,3 +1,5 @@
+> **Archived rollback application.** The official application is `../vite-app`; this Next.js code is preserved for migration and rollback only. Do not deploy it as the active site. Its public assets are linked to the Vite app’s public directory. See the repository-root README for current instructions.
+
 # Garden Bistro — Kigali
 
 A Next.js App Router / React / strict TypeScript hospitality application for the combined hotel and restaurant at **KN 159 St, Nyamirambo, Kigali, Rwanda**.
