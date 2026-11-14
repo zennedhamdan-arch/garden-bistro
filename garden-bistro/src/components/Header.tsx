@@ -31,13 +31,14 @@ export default function Header({ locale }: { locale: Locale }) {
           </span>
         </Link>
         <nav className={open ? "nav open" : "nav"} aria-label="Main">
-          {(["hotel", "restaurant", "menu", "about", "contact"] as const).map(
+          {(["home", "restaurant", "menu", "reservations", "rooms", "events", "gallery", "contact"] as const).map(
             (k) => (
               <Link
                 onClick={() => setOpen(false)}
                 key={k}
-                href={`/${locale}/${k}`}
-                className={path.includes("/" + k) ? "active" : ""}
+                href={k === "home" ? `/${locale}` : `/${locale}/${k}`}
+                className={(k === "home" ? path === `/${locale}` : path.startsWith(`/${locale}/${k}`)) ? "active" : ""}
+                aria-current={(k === "home" ? path === `/${locale}` : path.startsWith(`/${locale}/${k}`)) ? "page" : undefined}
               >
                 {t[k]}
               </Link>
@@ -59,6 +60,7 @@ export default function Header({ locale }: { locale: Locale }) {
               </Link>
             ))}
           </div>
+          <Link href="/admin/login" onClick={() => setOpen(false)} className="staff-link">{ {en:"Staff", fr:"Personnel", sw:"Wafanyakazi"}[locale] }</Link>
           <Link
             className="button small"
             onClick={() => setOpen(false)}
@@ -72,7 +74,7 @@ export default function Header({ locale }: { locale: Locale }) {
           className="mobile-toggle"
           onClick={() => setOpen(!open)}
           aria-expanded={open}
-          aria-label="Menu"
+          aria-label={open ? ({en:"Close menu",fr:"Fermer le menu",sw:"Funga menyu"}[locale]) : ({en:"Open menu",fr:"Ouvrir le menu",sw:"Fungua menyu"}[locale])}
         >
           {open ? <X /> : <Menu />}
         </button>

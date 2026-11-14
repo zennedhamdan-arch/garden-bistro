@@ -15,6 +15,7 @@ import RequestForm from "@/components/RequestForm";
 import MenuOrder from "@/components/MenuOrder";
 import PhotoGallery from "@/components/PhotoGallery";
 import LocationMap from "@/components/LocationMap";
+import { FoodPreview, PhotoStory, BookingBanner } from "@/components/EditorialSections";
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ locale: string; slug?: string[] }> };
 const routes = [
@@ -104,15 +105,15 @@ export default async function PublicPage({ params }: Props) {
               </h1>
               <p>{t.intro}</p>
               <div className="hero-actions">
-                <Link className="button gold" href={link("hotel")}>
-                  {t.explore}
+                <Link className="button gold" href={link("reservations")}>
+                  {t.reservations}
                   <ArrowUpRight size={17} />
                 </Link>
                 <Link
                   className="button outline-light"
-                  href={link("restaurant")}
+                  href={link("menu")}
                 >
-                  {t.discover}
+                  {t.menu}
                   <ArrowUpRight size={17} />
                 </Link>
               </div>
@@ -140,57 +141,11 @@ export default async function PublicPage({ params }: Props) {
             <span>✳</span>
             <span>{t.brandType}</span>
           </div>
-          <section className="experiences">
-            <div className="section-heading">
-              <span className="eyebrow">{t.welcome}</span>
-              <h2>
-                {t.welcomeTitle.split("\n").map((v) => (
-                  <span key={v}>{v}</span>
-                ))}
-              </h2>
-            </div>
-            <div className="experience-grid">
-              <Link className="experience hotel-card" href={link("hotel")}>
-                <div className="experience-art">
-                  <Image src="/images/room.webp" alt="A guest room at Garden Bistro" fill sizes="(max-width: 760px) 100vw, 50vw" className="cover-photo" />
-                  <span className="card-number">01 / HOTEL</span>
-                </div>
-                <div className="experience-copy">
-                  <div>
-                    <span className="eyebrow">GARDEN BISTRO</span>
-                    <h3>{t.hotel}</h3>
-                  </div>
-                  <ArrowUpRight />
-                  <p>{t.hotelText}</p>
-                  <span className="text-link">
-                    {t.explore}
-                    <ArrowRight size={16} />
-                  </span>
-                </div>
-              </Link>
-              <Link
-                className="experience restaurant-card"
-                href={link("restaurant")}
-              >
-                <div className="experience-art">
-                  <Image src="/images/dining.webp" alt="A meal served at Garden Bistro" fill sizes="(max-width: 760px) 100vw, 50vw" className="cover-photo" />
-                  <span className="card-number">02 / RESTAURANT</span>
-                </div>
-                <div className="experience-copy">
-                  <div>
-                    <span className="eyebrow">GARDEN BISTRO</span>
-                    <h3>{t.restaurant}</h3>
-                  </div>
-                  <ArrowUpRight />
-                  <p>{t.restaurantText}</p>
-                  <span className="text-link">
-                    {t.discover}
-                    <ArrowRight size={16} />
-                  </span>
-                </div>
-              </Link>
-            </div>
-          </section>
+          <section className="home-editorial"><div className="home-editorial-image"><Image src="/images/restaurant-interior.webp" alt={{en:"Dining room at Garden Bistro",fr:"La salle de Garden Bistro",sw:"Chumba cha kulia Garden Bistro"}[l]} fill sizes="(max-width: 760px) 100vw, 50vw" /></div><div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.restaurant}</h2><p>{t.restaurantText}</p><Link className="button" href={link("restaurant")}>{t.discover} <ArrowUpRight size={16}/></Link></div></section>
+          <PhotoStory locale={l} variant="food" />
+          <PhotoStory locale={l} variant="stay" />
+          <FoodPreview locale={l} items={items} />
+          <section className="home-editorial home-editorial-reverse"><div className="home-editorial-image"><Image src="/images/celebration.webp" alt={{en:"A table prepared for a celebration",fr:"Une table préparée pour une célébration",sw:"Meza iliyoandaliwa kwa sherehe"}[l]} fill sizes="(max-width: 760px) 100vw, 50vw" /></div><div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.events}</h2><p>{t.contactText}</p><Link className="button" href={link("events")}>{t.events} <ArrowUpRight size={16}/></Link></div></section>
           <section className="home-gallery-preview">
             <div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.gallery}</h2><Link className="text-link" href={link("gallery")}>{t.gallery} <ArrowUpRight size={16} /></Link></div>
             <div className="home-gallery-images"><Image src="/images/garden.webp" alt={{en:"The garden at Garden Bistro",fr:"Le jardin de Garden Bistro",sw:"Bustani ya Garden Bistro"}[l]} width={900} height={600} sizes="(max-width: 760px) 100vw, 45vw" /><Image src="/images/bar.webp" alt={{en:"The bar at Garden Bistro",fr:"Le bar de Garden Bistro",sw:"Baa ya Garden Bistro"}[l]} width={900} height={600} sizes="(max-width: 760px) 100vw, 45vw" /></div>
@@ -205,11 +160,12 @@ export default async function PublicPage({ params }: Props) {
             </Link>
             <LocationMap locale={l} />
           </section>
+          <BookingBanner locale={l} />
         </>
       ) : (
         <>
-          <section className={`page-hero page-hero-${key}`}>
-            {!!page?.data.imageId && <><Image className="page-hero-photo" src={"/api/images/" + page.data.imageId} alt={String(page.data.alt || page.title)} fill unoptimized sizes="100vw" /><span className="page-hero-overlay" /></>}
+          <section className={`page-hero page-hero-${key} ${["restaurant", "hotel", "rooms"].includes(key) ? "split-page-hero" : ""}`}>
+            {(!!page?.data.imageId || ["restaurant", "hotel", "rooms"].includes(key)) && <><Image className="page-hero-photo" src={page?.data.imageId ? "/api/images/" + page.data.imageId : key === "restaurant" ? "/images/terrace-meal.webp" : "/images/room.webp"} alt={String(page?.data.alt || ({en: key === "restaurant" ? "Dining at Garden Bistro" : "A guest room at Garden Bistro", fr: key === "restaurant" ? "Repas à Garden Bistro" : "Une chambre à Garden Bistro", sw: key === "restaurant" ? "Chakula Garden Bistro" : "Chumba cha wageni Garden Bistro"})[l])} fill unoptimized={!!page?.data.imageId} sizes="(max-width: 760px) 100vw, 50vw" /><span className="page-hero-overlay" /></>}
             <div>
               <span className="eyebrow">GARDEN BISTRO · {t.eyebrow}</span>
               <h1>
@@ -237,6 +193,7 @@ export default async function PublicPage({ params }: Props) {
             )}
             {key === "hotel" && (
               <>
+                <div className="editorial-feature"><Image src="/images/room.webp" alt={{en:"A guest room at Garden Bistro",fr:"Une chambre à Garden Bistro",sw:"Chumba cha wageni Garden Bistro"}[l]} width={900} height={700} sizes="(max-width: 760px) 100vw, 50vw" /><div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.rooms}</h2><p>{t.hotelText}</p><Link className="text-link" href={link("rooms")}>{t.rooms} <ArrowUpRight size={16}/></Link></div></div>
                 <div className="inline-actions">
                   <Link className="button" href={link("rooms")}>
                     {t.rooms}
@@ -304,6 +261,7 @@ export default async function PublicPage({ params }: Props) {
                       className="content-card"
                       href={link("rooms/" + r.slug)}
                     >
+                      {!!r.data.imageId && <Image src={"/api/images/" + r.data.imageId} alt={String(r.data.alt ?? r.title)} width={800} height={600} unoptimized className="room-card-photo" />}
                       <h2>{r.title}</h2>
                       <p>{r.description}</p>
                     </Link>
@@ -312,6 +270,9 @@ export default async function PublicPage({ params }: Props) {
               ) : (
                 <p className="empty-state">{t.unavailable}</p>
               ))}
+            {key === "rooms" && !p.slug?.[1] && <><PhotoStory locale={l} variant="stay" /><div className="room-enquiry"><h2>{t.enquire}</h2><RequestForm locale={l} kind="hotel" /></div></>}
+            {key === "restaurant" && <div className="editorial-feature"><Image src="/images/food-green.webp" alt={{en:"A dish served at Garden Bistro",fr:"Un plat servi à Garden Bistro",sw:"Chakula kilichotolewa Garden Bistro"}[l]} width={900} height={700} sizes="(max-width: 760px) 100vw, 50vw" /><div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.restaurant}</h2><p>{t.restaurantText}</p><Link className="text-link" href={link("menu")}>{t.menu} <ArrowUpRight size={16}/></Link></div></div>}
+            {key === "restaurant" && <><PhotoStory locale={l} variant="garden" /><FoodPreview locale={l} items={items} /><BookingBanner locale={l} /></>}
             {key === "restaurant" && (
               <div className="inline-actions">
                 {(["menu", "reservations", "order"] as const).map((k) => (
@@ -322,6 +283,7 @@ export default async function PublicPage({ params }: Props) {
                 ))}
               </div>
             )}
+            {key === "menu" && !p.slug?.[1] && <div className="menu-editorial-photos"><Image src="/images/grill.webp" alt={{en:"Grilled food at Garden Bistro",fr:"Grillades à Garden Bistro",sw:"Chakula cha kuchoma Garden Bistro"}[l]} width={600} height={600} /><div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.restaurant}</h2><p>{t.restaurantText}</p></div><Image src="/images/food-green.webp" alt={{en:"A dish at Garden Bistro",fr:"Un plat à Garden Bistro",sw:"Chakula Garden Bistro"}[l]} width={600} height={600} /></div>}
             {(key === "menu" || key === "order") &&
               (p.slug?.[1] ? (
                 (() => {
@@ -346,8 +308,12 @@ export default async function PublicPage({ params }: Props) {
                 />
               ))}
             {key === "reservations" && (
-              <RequestForm locale={l} kind="reservation" />
+              <div className="reservation-layout">
+                <div className="reservation-aside"><Image src="/images/restaurant-interior.webp" alt={{en:"Dining room at Garden Bistro",fr:"Salle du restaurant Garden Bistro",sw:"Chumba cha kulia cha Garden Bistro"}[l]} width={900} height={1100} sizes="(max-width: 760px) 100vw, 45vw" /><div><span className="eyebrow">GARDEN BISTRO · KIGALI</span><h2>{t.restaurant}</h2><p>{t.restaurantText}</p><p>KN 159 St, Nyamirambo, Kigali</p></div></div>
+                <div className="reservation-panel"><span className="eyebrow">GARDEN BISTRO</span><h2>{t.reservations}</h2><RequestForm locale={l} kind="reservation" /></div>
+              </div>
             )}
+            {key === "reservations" && <><FoodPreview locale={l} items={items} /><BookingBanner locale={l} /></>}
             {key === "events" && (
               <>
                 <p>{page ? t.approved : t.unavailable}</p>

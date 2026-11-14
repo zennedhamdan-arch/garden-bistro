@@ -121,6 +121,9 @@ export default function MenuOrder({
           ))}
         </select>
       </div>
+      <div className="menu-categories" aria-label={t.all}>
+        {["", ...Array.from(new Set(items.map(i => String(i.data.category ?? "")).filter(Boolean)))].map(c => <button key={c || "all"} type="button" aria-pressed={category === c} onClick={() => setCategory(c)}>{c || t.all}</button>)}
+      </div>
       {items.length === 0 ? (
         <div className="empty-state">{t.menuEmpty}</div>
       ) : (
@@ -139,6 +142,7 @@ export default function MenuOrder({
                 <div>
                   <h3>{i.title}</h3>
                   <p>{i.description}</p>
+                  {!!i.data.soldOut && <small className="sold-out">{ {en:"Unavailable",fr:"Indisponible",sw:"Haipatikani"}[locale] }</small>}
                   {Array.isArray(i.data.labels) && (
                     <small>{i.data.labels.join(" · ")}</small>
                   )}

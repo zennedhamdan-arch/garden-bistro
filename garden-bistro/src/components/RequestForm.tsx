@@ -125,6 +125,10 @@ export default function RequestForm({
             defaultValue="2"
           />
         </label>
+        {kind === "reservation" && <>
+          <label>{ {en:"Occasion (optional)",fr:"Occasion (facultatif)",sw:"Tukio (si lazima)"}[locale] }<input name="eventType" maxLength={120} /></label>
+          <label>{ {en:"Seating preference (optional)",fr:"Préférence de placement (facultatif)",sw:"Mahali unapopendelea kukaa (si lazima)"}[locale] }<input name="preference" maxLength={120} /></label>
+        </>}
         {kind === "hotel" && (
           <label>
             {t.preference}
