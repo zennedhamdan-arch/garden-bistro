@@ -1,0 +1,14 @@
+import {z} from "zod";
+import {authorized,db,json,readJson,sameOrigin} from "./lib/server";
+const zone=z.object({id:z.string().trim().regex(/^[a-z0-9-]+$/).max(100),name:z.string().trim().min(1).max(120),fee:z.number().int().min(0).max(2147483647),enabled:z.boolean()}).strict();
+export const settingsSaveSchema=z.object({action:z.literal("save"),expectedHash:z.string().regex(/^[0-9a-f]{32}$/),orderingEnabled:z.boolean(),pickupEnabled:z.boolean(),deliveryEnabled:z.boolean(),minimumOrder:z.number().int().min(0).max(2147483647),paymentInstructions:z.object({en:z.string().max(2000),fr:z.string().max(2000),sw:z.string().max(2000)}).strict(),deliveryZones:z.array(zone).max(100).refine(a=>new Set(a.map(z=>z.id)).size===a.length,"Duplicate zones")}).strict();
+export const settingsListSchema=z.object({action:z.literal("get")}).strict();
+export default async(request:Request)=>{
+ if(request.method!=="POST")return json({error:"Method not allowed"},405);if(!sameOrigin(request))return json({error:"Forbidden"},403);
+ let body:unknown;try{body=await readJson(request,32768)}catch{return json({error:"Invalid request"},400)}
+ const get=settingsListSchema.safeParse(body),save=settingsSaveSchema.safeParse(body);if(!get.success&&!save.success)return json({error:"Invalid request"},400);
+ try{const actor=await authorized(request,get.success?"settings.read":"settings.write");if(!actor)return json({error:"Forbidden"},403);
+  if(get.success){const r=await db().query("SELECT data,md5(data::text) AS version FROM settings WHERE id='business'");if(!r.rowCount)return json({error:"Settings unavailable"},404);const d=r.rows[0].data??{};const p=d.paymentInstructions??{};return json({version:r.rows[0].version,settings:{orderingEnabled:d.orderingEnabled===true,pickupEnabled:d.pickupEnabled===true,deliveryEnabled:d.deliveryEnabled===true,minimumOrder:d.minimumOrder??0,paymentInstructions:{en:typeof p.en==="string"?p.en:"",fr:typeof p.fr==="string"?p.fr:"",sw:typeof p.sw==="string"?p.sw:""},deliveryZones:d.deliveryZones??[]},serverApproved:process.env.ORDERING_APPROVED==="true"})}
+  const {action:_,expectedHash,...settings}=save.data!;const client=await db().connect();try{await client.query("BEGIN");const r=await client.query("UPDATE settings SET data=COALESCE(data,'{}'::jsonb) || $1::jsonb WHERE id='business' AND jsonb_typeof(data)='object' AND md5(data::text)=$2 RETURNING id",[JSON.stringify(settings),expectedHash]);if(!r.rowCount){await client.query("ROLLBACK");return json({error:"Settings changed or unavailable; reload"},409)}await client.query("INSERT INTO audit_logs(actor,action,record_id) VALUES($1,$2,'business')",[actor,"settings.ordering.update"]);await client.query("COMMIT");return json({ok:true})}catch(e){await client.query("ROLLBACK");throw e}finally{client.release()}
+ }catch{console.error("staff_settings_failed");return json({error:"Service unavailable"},503)}
+};
